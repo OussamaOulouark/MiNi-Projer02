@@ -2,11 +2,16 @@ package com.example.miniprojer02;
 
 import static com.google.android.material.color.utilities.MaterialDynamicColors.error;
 
+import androidx.activity.OnBackPressedDispatcherOwner;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,6 +28,9 @@ public class StartActivity extends AppCompatActivity {
 
     TextView tvStartActQuote, tvStartActAuthor;
     Button btnStartActPass;
+    ToggleButton tbStartActPinUnpin;
+    SharedPreferences sharedPreferences;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,26 +40,65 @@ public class StartActivity extends AppCompatActivity {
         tvStartActQuote = findViewById(R.id.tvStartActQuote);
         tvStartActAuthor = findViewById(R.id.tvStartActAuthor);
         btnStartActPass = findViewById(R.id.btnStartActPass);
+        tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
 
+        sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
+
+        String quote = sharedPreferences.getString("quote", null);
+
+        if (quote == null) {
+            getRandomQuote();
+        } else {
+            String author = sharedPreferences.getString("author", null);
+
+            tvStartActQuote.setText(quote);
+            tvStartActAuthor.setText(author);
+
+            tbStartActPinUnpin.setChecked(true);
+        }
+
+        tbStartActPinUnpin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                String quote = null;
+                String author = null;
+
+                if (isChecked) {
+                    quote = tvStartActQuote.getText().toString();
+                    author = tvStartActAuthor.getText().toString();
+                } else {
+                    getRandomQuote();
+                }
+
+                editor.putString("quote", quote);
+                editor.putString("author", author);
+
+                editor.commit();
+            }
+        });
+
+        btnStartActPass.setOnClickListener(v -> {
+            finish();
+        });
+    }
+
+    private void getRandomQuote() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://dummyjson.com/quotes/random ";
+        String url = "https://dummyjson.com/quotes/random";
 
-        // Request a string response from the provided URL.
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 url,
                 new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
-                    // Display the first 500 characters of the response string.
-                    try {
-
-
-                        tvStartActQuote.setText(response.getString("quote"));
-                        tvStartActAuthor.setText(response.getString("author"));
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
+                        try {
+                            tvStartActQuote.setText(response.getString("quote"));
+                            tvStartActAuthor.setText(response.getString("author"));
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
-                }
                 },
                 new Response.ErrorListener() {
                     @Override
@@ -60,12 +107,11 @@ public class StartActivity extends AppCompatActivity {
                     }
                 });
 
-         queue.add(jsonObjectRequest);
-
-        //endregion
-
-        btnStartActPass.setOnClickListener(v -> {
-            finish();
-        });
+        queue.add(jsonObjectRequest);
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 }
