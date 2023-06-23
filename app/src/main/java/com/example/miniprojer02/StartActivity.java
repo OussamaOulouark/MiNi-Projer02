@@ -7,8 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -25,10 +27,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class StartActivity extends AppCompatActivity {
+    boolean isFavorite = false;
 
     TextView tvStartActQuote, tvStartActAuthor;
     Button btnStartActPass;
     ToggleButton tbStartActPinUnpin;
+    ImageView ivStartActIsFavorite;
     SharedPreferences sharedPreferences;
 
 
@@ -41,6 +45,27 @@ public class StartActivity extends AppCompatActivity {
         tvStartActAuthor = findViewById(R.id.tvStartActAuthor);
         btnStartActPass = findViewById(R.id.btnStartActPass);
         tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
+        ivStartActIsFavorite = findViewById(R.id.ivStartActIsFavorite);
+
+
+
+        //region like dislike
+
+        ivStartActIsFavorite.setOnClickListener(v -> {
+
+            if (isFavorite) {
+                ivStartActIsFavorite.setImageResource(R.drawable.like);
+            } else {
+                ivStartActIsFavorite.setImageResource(R.drawable.dislike);
+
+            }
+            isFavorite = !isFavorite;
+
+
+        });
+        //endregion
+
+        //region pin quotes|unpin
 
         sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
 
@@ -109,6 +134,10 @@ public class StartActivity extends AppCompatActivity {
 
         queue.add(jsonObjectRequest);
     }
+
+
+
+    //endregion
     @Override
     public void onBackPressed() {
         super.onBackPressed();
