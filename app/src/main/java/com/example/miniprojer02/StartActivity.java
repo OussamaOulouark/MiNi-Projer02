@@ -1,24 +1,23 @@
 package com.example.miniprojer02;
 
-import static com.google.android.material.color.utilities.MaterialDynamicColors.error;
-
-import androidx.activity.OnBackPressedDispatcherOwner;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.android.volley.Request;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONException;
@@ -27,22 +26,70 @@ import org.json.JSONObject;
 public class StartActivity extends AppCompatActivity {
 
     TextView tvStartActQuote, tvStartActAuthor;
+    Spinner SPcolores;
     Button btnStartActPass;
     ToggleButton tbStartActPinUnpin;
     SharedPreferences sharedPreferences;
-
+    ArrayAdapter<String> spinnerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
 
+        SPcolores = findViewById(R.id.SPcolores);
         tvStartActQuote = findViewById(R.id.tvStartActQuote);
         tvStartActAuthor = findViewById(R.id.tvStartActAuthor);
         btnStartActPass = findViewById(R.id.btnStartActPass);
         tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
-
         sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
+
+        String[] spinnerItems = {"Default", "LightSalmon", "Plum", "PaleGreen", "CornflowerBlue"};
+        spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, spinnerItems);
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        SPcolores.setAdapter(spinnerAdapter);
+
+
+
+        String savedColor = sharedPreferences.getString("selectedColor", "Default");
+        int savedColorIndex = spinnerAdapter.getPosition(savedColor);
+        SPcolores.setSelection(savedColorIndex);
+
+        SPcolores.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                String selectedColor = parent.getItemAtPosition(position).toString();
+
+                switch (selectedColor) {
+                    case "Default":
+                        // Set the default background color here
+                        getWindow().getDecorView().setBackgroundColor(Color.BLACK);
+                        break;
+                    case "LightSalmon":
+                        getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.LightSalmon));
+                        break;
+                    case "Plum":
+                        getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.Plum));
+                        break;
+                    case "PaleGreen":
+                        getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.PaleGreen));
+                        break;
+                    case "CornflowerBlue":
+                        getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.CornflowerBlue));
+                        break;
+                }
+
+                // Save the selected color to SharedPreferences
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("selectedColor", selectedColor);
+                editor.apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Handle the case when nothing is selected (if needed)
+            }
+        });
 
         String quote = sharedPreferences.getString("quote", null);
 
@@ -74,7 +121,7 @@ public class StartActivity extends AppCompatActivity {
                 editor.putString("quote", quote);
                 editor.putString("author", author);
 
-                editor.commit();
+                editor.apply();
             }
         });
 
@@ -109,6 +156,7 @@ public class StartActivity extends AppCompatActivity {
 
         queue.add(jsonObjectRequest);
     }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
