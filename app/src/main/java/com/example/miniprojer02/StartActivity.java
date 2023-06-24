@@ -22,6 +22,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.miniprojer02.db.FavoriteQuotesDbOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -81,6 +82,17 @@ public class StartActivity extends AppCompatActivity {
 
             tbStartActPinUnpin.setChecked(true);
         }
+
+        //region test to delete
+        FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
+         db.add(2, "q2", "a2");
+        db.add(20, "q2", "a2");
+        db.add(30, "q3", "a3");
+        db.getAll();
+        //endregion
+
+
+
 
         tbStartActPinUnpin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
