@@ -75,9 +75,12 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
 
         while(cursor.moveToNext()) {
             int id = cursor.getInt(cursor.getColumnIndexOrThrow(FavoriteQuotesContract.Infos.COLUMN_NAME_ID));
+
             String quote = cursor.getString(cursor.getColumnIndexOrThrow(FavoriteQuotesContract.Infos.COLUMN_NAME_ID));
             String author = cursor.getString(cursor.getColumnIndexOrThrow(FavoriteQuotesContract.Infos.COLUMN_NAME_ID));
             Log.e("SQLITE", String.format("Quote %d, %s, %s", id, quote, author));
+
+
         }
 
         cursor.close();

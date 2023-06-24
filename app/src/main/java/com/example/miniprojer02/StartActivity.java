@@ -65,6 +65,16 @@ public class StartActivity extends AppCompatActivity {
 
         });
         //endregion
+        //region ToDelete : Just for test
+
+        FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
+        db.add(1, "q1", "a1");
+        db.add(20, "q2", "a2");
+        db.add(30, "q3", "a3");
+
+        db.getAll();
+
+        //endregion
 
         //region pin quotes|unpin
 
@@ -82,17 +92,6 @@ public class StartActivity extends AppCompatActivity {
 
             tbStartActPinUnpin.setChecked(true);
         }
-
-        //region test to delete
-        FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
-        db.add(2, "q2", "a2");
-        db.add(20, "q2", "a2");
-        db.add(30, "q3", "a3");
-        db.getAll();
-        //endregion
-
-
-
 
         tbStartActPinUnpin.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
