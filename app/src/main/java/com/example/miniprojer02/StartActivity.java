@@ -98,6 +98,7 @@ public class StartActivity extends AppCompatActivity {
 
         db = new FavoriteQuotesDbOpenHelper(this);
 
+
         ivStartActIsFavorite.setOnClickListener(v -> {
             int id = Integer.parseInt(tvStartActId.getText().toString().substring(1));
 
@@ -135,7 +136,7 @@ public class StartActivity extends AppCompatActivity {
 
     private void getRandomQuote() {
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://dummyjson.com/quotes/random";
+        String url = "https://dummyjson.com/quotes/1";
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 url,
@@ -143,9 +144,22 @@ public class StartActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
-                            tvStartActId.setText(String.format("#%d", response.getInt("id")));
-                            tvStartActQuote.setText(response.getString("quote"));
-                            tvStartActAuthor.setText(response.getString("author"));
+                            int id = response.getInt("id");
+                            String quote = response.getString("quote");
+                            String author = response.getString("author");
+
+                            // Check if the quote is already in favorites
+                            if (db.isQuoteFavorite(id)) {
+                                ivStartActIsFavorite.setImageResource(R.drawable.like);
+                                isFavorite = true;
+                            } else {
+                                ivStartActIsFavorite.setImageResource(R.drawable.dislike);
+                                isFavorite = false;
+                            }
+
+                            tvStartActId.setText(String.format("#%d", id));
+                            tvStartActQuote.setText(quote);
+                            tvStartActAuthor.setText(author);
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
@@ -160,6 +174,7 @@ public class StartActivity extends AppCompatActivity {
 
         queue.add(jsonObjectRequest);
     }
+
 
 
     //endregion

@@ -2,6 +2,7 @@ package com.example.miniprojer02.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -50,7 +51,7 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(FavoriteQuotesContract.Infos.COLUMN_NAME_ID, id);
         values.put(FavoriteQuotesContract.Infos.COLUMN_NAME_QUOTE, quote);
-        values.put(FavoriteQuotesContract.Infos.COLUMN_NAME_AUTHOR, quote);
+        values.put(FavoriteQuotesContract.Infos.COLUMN_NAME_AUTHOR, author);
 
         db.insert(FavoriteQuotesContract.Infos.TABLE_NAME, null, values);
     }
@@ -102,6 +103,26 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
 
         cursor.close();
         return quotes;
+    }
+
+    public boolean isQuoteFavorite(int id) {
+        SQLiteDatabase db = getReadableDatabase();
+        String selection = FavoriteQuotesContract.Infos.COLUMN_NAME_ID + " = ?";
+        String[] selectionArgs = {String.valueOf(id)};
+
+        Cursor cursor = db.query(
+                FavoriteQuotesContract.Infos.TABLE_NAME,
+                null,
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null
+        );
+
+        boolean isFavorite = cursor.getCount() > 0;
+        cursor.close();
+        return isFavorite;
     }
     }
 
