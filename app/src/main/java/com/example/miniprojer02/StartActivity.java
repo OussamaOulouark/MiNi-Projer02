@@ -68,9 +68,11 @@ public class StartActivity extends AppCompatActivity {
         //region ToDelete : Just for test
 
         FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
-        db.add(1, "q1", "a1");
-        db.add(20, "q2", "a2");
-        db.add(30, "q3", "a3");
+//        db.add(1, "q1", "a1");
+//        db.add(20, "q2", "a2");
+//        db.add(30, "q3", "a3");
+        db.delete(1);
+
 
         db.getAll();
 
