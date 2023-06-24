@@ -5,6 +5,7 @@ import static com.google.android.material.color.utilities.MaterialDynamicColors.
 import androidx.activity.OnBackPressedDispatcherOwner;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,14 +33,14 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class StartActivity extends AppCompatActivity {
-    boolean isFavorite = false;
-
     TextView tvStartActQuote, tvStartActAuthor;
     Button btnStartActPass;
     ToggleButton tbStartActPinUnpin;
-    ImageView ivStartActIsFavorite;
     SharedPreferences sharedPreferences;
-
+    ImageView ivStartActIsFavorite;
+    boolean isFavorite = false;
+    FavoriteQuotesDbOpenHelper db;
+    TextView tvStartActId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,53 +52,20 @@ public class StartActivity extends AppCompatActivity {
         btnStartActPass = findViewById(R.id.btnStartActPass);
         tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
         ivStartActIsFavorite = findViewById(R.id.ivStartActIsFavorite);
+        tvStartActId = findViewById(R.id.tvStartActId);
 
+        //region Pin | Unpin Quote
 
+        sharedPreferences = getSharedPreferences("pinned-pinnedQuote", MODE_PRIVATE);
 
-        //region like dislike
+        String pinnedQuote = sharedPreferences.getString("pinnedQuote", null);
 
-        ivStartActIsFavorite.setOnClickListener(v -> {
-
-            if (isFavorite) {
-                ivStartActIsFavorite.setImageResource(R.drawable.like);
-            } else {
-                ivStartActIsFavorite.setImageResource(R.drawable.dislike);
-
-            }
-            isFavorite = !isFavorite;
-
-
-        });
-        //endregion
-        //region ToDelete : Just for test
-
-        FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
-//        db.add(new Quote(1, "q1", "a1"));
-//        db.add(new Quote(20, "q2", "a2"));
-//        db.add(new Quote(30, "q3", "a3"));
-        db.delete(20);
-
-
-        ArrayList<Quote> quotes =  db.getAll();
-
-
-        for (Quote quote : quotes) {
-            Log.e("SQLite", quote.toString());
-        }
-        //endregion
-
-        //region pin quotes|unpin
-
-        sharedPreferences = getSharedPreferences("pinned-pinnedquote", MODE_PRIVATE);
-
-        String pinnedquote = sharedPreferences.getString("pinnedquote", null);
-
-        if (pinnedquote == null) {
+        if (pinnedQuote == null) {
             getRandomQuote();
         } else {
             String author = sharedPreferences.getString("author", null);
 
-            tvStartActQuote.setText(pinnedquote);
+            tvStartActQuote.setText(pinnedQuote);
             tvStartActAuthor.setText(author);
 
             tbStartActPinUnpin.setChecked(true);
@@ -117,12 +85,48 @@ public class StartActivity extends AppCompatActivity {
                     getRandomQuote();
                 }
 
-                editor.putString("pinnedquote", quote);
+                editor.putString("pinnedQuote", quote);
                 editor.putString("author", author);
 
                 editor.commit();
             }
         });
+
+        //endregion
+
+        //region Like | Dislike Quote
+
+        db = new FavoriteQuotesDbOpenHelper(this);
+
+        ivStartActIsFavorite.setOnClickListener(v -> {
+            int id = Integer.parseInt(tvStartActId.getText().toString().substring(1));
+
+            if (isFavorite) {
+                ivStartActIsFavorite.setImageResource(R.drawable.dislike);
+
+                db.delete(id);
+            } else {
+                ivStartActIsFavorite.setImageResource(R.drawable.like);
+
+                String quote = tvStartActQuote.getText().toString();
+                String author = tvStartActAuthor.getText().toString();
+
+                db.add(new Quote(id, quote, author));
+            }
+
+            isFavorite = !isFavorite;
+
+            //region ToDelete
+
+            ArrayList<Quote> quotes = db.getAll();
+            for (Quote quote : quotes) {
+                Log.e("SQLite", quote.toString());
+            }
+
+            //endregion
+        });
+
+        //endregion
 
         btnStartActPass.setOnClickListener(v -> {
             finish();
@@ -139,6 +143,7 @@ public class StartActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
+                            tvStartActId.setText(String.format("#%d", response.getInt("id")));
                             tvStartActQuote.setText(response.getString("quote"));
                             tvStartActAuthor.setText(response.getString("author"));
                         } catch (JSONException e) {
@@ -155,7 +160,6 @@ public class StartActivity extends AppCompatActivity {
 
         queue.add(jsonObjectRequest);
     }
-
 
 
     //endregion
