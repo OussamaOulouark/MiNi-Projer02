@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -22,10 +23,13 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.miniprojer02.Models.Quote;
 import com.example.miniprojer02.db.FavoriteQuotesDbOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class StartActivity extends AppCompatActivity {
     boolean isFavorite = false;
@@ -68,28 +72,32 @@ public class StartActivity extends AppCompatActivity {
         //region ToDelete : Just for test
 
         FavoriteQuotesDbOpenHelper db = new FavoriteQuotesDbOpenHelper(this);
-//        db.add(1, "q1", "a1");
-//        db.add(20, "q2", "a2");
-//        db.add(30, "q3", "a3");
-        db.delete(1);
+//        db.add(new Quote(1, "q1", "a1"));
+//        db.add(new Quote(20, "q2", "a2"));
+//        db.add(new Quote(30, "q3", "a3"));
+        db.delete(20);
 
 
-        db.getAll();
+        ArrayList<Quote> quotes =  db.getAll();
 
+
+        for (Quote quote : quotes) {
+            Log.e("SQLite", quote.toString());
+        }
         //endregion
 
         //region pin quotes|unpin
 
-        sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("pinned-pinnedquote", MODE_PRIVATE);
 
-        String quote = sharedPreferences.getString("quote", null);
+        String pinnedquote = sharedPreferences.getString("pinnedquote", null);
 
-        if (quote == null) {
+        if (pinnedquote == null) {
             getRandomQuote();
         } else {
             String author = sharedPreferences.getString("author", null);
 
-            tvStartActQuote.setText(quote);
+            tvStartActQuote.setText(pinnedquote);
             tvStartActAuthor.setText(author);
 
             tbStartActPinUnpin.setChecked(true);
@@ -109,7 +117,7 @@ public class StartActivity extends AppCompatActivity {
                     getRandomQuote();
                 }
 
-                editor.putString("quote", quote);
+                editor.putString("pinnedquote", quote);
                 editor.putString("author", author);
 
                 editor.commit();

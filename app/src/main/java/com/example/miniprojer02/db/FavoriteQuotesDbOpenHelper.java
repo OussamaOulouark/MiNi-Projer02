@@ -8,6 +8,10 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.miniprojer02.Models.Quote;
+
+import java.util.ArrayList;
+
 public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "Quotes.db";
@@ -41,7 +45,7 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
 
     }
 
-    public void add(int id, String quote, String author) {
+    private void add(int id, String quote, String author) {
         SQLiteDatabase db = FavoriteQuotesDbOpenHelper.this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -52,6 +56,11 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
         db.insert(FavoriteQuotesContract.Infos.TABLE_NAME, null, values);
     }
 
+    public void add(Quote quote){
+        add(quote.getId() , quote.getQuote() , quote.getAuthor());
+    }
+
+    //machi darori n3tiwh l quot kamlha hir id safi
     public void delete(int id){
         SQLiteDatabase db = FavoriteQuotesDbOpenHelper.this.getWritableDatabase();
         String selection = FavoriteQuotesContract.Infos.COLUMN_NAME_ID + " = ?" ;
@@ -61,7 +70,8 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
          db.delete(FavoriteQuotesContract.Infos.TABLE_NAME, selection , selectionArgs);
     }
 
-    public void getAll() {
+    public ArrayList<Quote> getAll() {
+        ArrayList<Quote> quotes = new ArrayList<>();
         SQLiteDatabase db = FavoriteQuotesDbOpenHelper.this.getReadableDatabase();
 
         String Cursor;
@@ -87,12 +97,13 @@ public class FavoriteQuotesDbOpenHelper extends SQLiteOpenHelper {
 
             String quote = cursor.getString(cursor.getColumnIndexOrThrow(FavoriteQuotesContract.Infos.COLUMN_NAME_ID));
             String author = cursor.getString(cursor.getColumnIndexOrThrow(FavoriteQuotesContract.Infos.COLUMN_NAME_ID));
-            Log.e("SQLITE", String.format("Quote %d, %s, %s", id, quote, author));
+            quotes.add(new Quote(id,quote,author));
 
 
         }
 
         cursor.close();
+        return quotes;
     }
     }
 
