@@ -34,15 +34,17 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class StartActivity extends AppCompatActivity {
+    private final static int INVALIDE_ID = -1;
+
     TextView tvStartActQuote, tvStartActAuthor;
     Button btnStartActPass;
     ToggleButton tbStartActPinUnpin;
     SharedPreferences sharedPreferences;
     ImageView ivStartActIsFavorite;
-    boolean isFavorite = false;
     FavoriteQuotesDbOpenHelper db;
     TextView tvStartActId;
 
+    @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,19 +57,28 @@ public class StartActivity extends AppCompatActivity {
         ivStartActIsFavorite = findViewById(R.id.ivStartActIsFavorite);
         tvStartActId = findViewById(R.id.tvStartActId);
 
+        //region Persistence Objects
+
+        db = new FavoriteQuotesDbOpenHelper(this);
+        sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
+
+        //endregion
+
         //region Pin | Unpin Quote
 
-        sharedPreferences = getSharedPreferences("pinned-pinnedQuote", MODE_PRIVATE);
+        int pinnedQuoteId = sharedPreferences.getInt("id", INVALIDE_ID);
 
-        String pinnedQuote = sharedPreferences.getString("pinnedQuote", null);
-
-        if (pinnedQuote == null) {
+        if (pinnedQuoteId == INVALIDE_ID) {
             getRandomQuote();
         } else {
+            String quote = sharedPreferences.getString("quote", null);
             String author = sharedPreferences.getString("author", null);
 
-            tvStartActQuote.setText(pinnedQuote);
+            tvStartActId.setText(String.format("#%d", pinnedQuoteId));
+            tvStartActQuote.setText(quote);
             tvStartActAuthor.setText(author);
+
+            ivStartActIsFavorite.setImageResource(db.isFavorite(pinnedQuoteId) ? R.drawable.like : R.drawable.dislike);
 
             tbStartActPinUnpin.setChecked(true);
         }
@@ -76,17 +87,32 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
+                int pinnedQuoteId = INVALIDE_ID;
                 String quote = null;
                 String author = null;
 
                 if (isChecked) {
+                    pinnedQuoteId = Integer.parseInt(tvStartActId.getText().toString().substring(1));
                     quote = tvStartActQuote.getText().toString();
                     author = tvStartActAuthor.getText().toString();
+
+                    if (!db.isFavorite(pinnedQuoteId)) {
+                        ivStartActIsFavorite.setImageResource(R.drawable.like);
+
+                        db.add(new Quote(pinnedQuoteId, quote, author));
+
+                        //region ToDo: Delete
+
+                        logFavoriteQuotes();
+
+                        //endregion
+                    }
                 } else {
-                    getRandomQuote();
+//                    getRandomQuote();
                 }
 
-                editor.putString("pinnedQuote", quote);
+                editor.putInt("id", pinnedQuoteId);
+                editor.putString("quote", quote);
                 editor.putString("author", author);
 
                 editor.commit();
@@ -97,12 +123,13 @@ public class StartActivity extends AppCompatActivity {
 
         //region Like | Dislike Quote
 
-        db = new FavoriteQuotesDbOpenHelper(this);
-
         ivStartActIsFavorite.setOnClickListener(v -> {
             int id = Integer.parseInt(tvStartActId.getText().toString().substring(1));
+            boolean isFavorite = db.isFavorite(id);
 
             if (isFavorite) {
+                tbStartActPinUnpin.setChecked(false);
+
                 ivStartActIsFavorite.setImageResource(R.drawable.dislike);
 
                 db.delete(id);
@@ -115,14 +142,9 @@ public class StartActivity extends AppCompatActivity {
                 db.add(new Quote(id, quote, author));
             }
 
-            isFavorite = !isFavorite;
+            //region ToDo: Delete
 
-            //region ToDelete
-
-            ArrayList<Quote> quotes = db.getAll();
-            for (Quote quote : quotes) {
-                Log.e("SQLite", quote.toString());
-            }
+            logFavoriteQuotes();
 
             //endregion
         });
@@ -134,17 +156,32 @@ public class StartActivity extends AppCompatActivity {
         });
     }
 
+    //region ToDo: Delete
+
+    private void logFavoriteQuotes() {
+        ArrayList<Quote> quotes = db.getAll();
+        for (Quote quote : quotes) {
+            Log.e("SQLite", quote.toString());
+        }
+    }
+
+    //endregion
+
     private void getRandomQuote() {
         RequestQueue queue = Volley.newRequestQueue(this);
-//        String url = "https://dummyjson.com/quotes/random";
+        String url = "https://dummyjson.com/quotes/random";
 
-        int randomNumber = ThreadLocalRandom.current().nextInt(1, 3 + 1);
-        String url = String.format("https://dummyjson.com/quotes/%d", randomNumber);
+        //region ToDo: Delete
 
+//        int randomNumber = ThreadLocalRandom.current().nextInt(1, 5 + 1);
+//        String url = String.format("https://dummyjson.com/quotes/%d", randomNumber);
+
+        //endregion
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 url,
                 new Response.Listener<JSONObject>() {
+                    @SuppressLint("DefaultLocale")
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
@@ -173,13 +210,5 @@ public class StartActivity extends AppCompatActivity {
                 });
 
         queue.add(jsonObjectRequest);
-    }
-
-
-    //endregion
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
     }
 }
