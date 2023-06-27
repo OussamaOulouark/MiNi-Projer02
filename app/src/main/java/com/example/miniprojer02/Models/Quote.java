@@ -40,6 +40,6 @@ public class Quote {
     @NonNull
     @Override
     public String toString() {
-        return String.format("Quote %d, %s, %s", getId(), getQuote(), getAuthor());
+        return String.format("[Quote %d], %s\n%s", getId(), getQuote(), getAuthor());
     }
 }

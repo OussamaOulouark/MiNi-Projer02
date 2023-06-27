@@ -6,6 +6,7 @@ import androidx.activity.OnBackPressedDispatcherOwner;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -35,7 +36,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class StartActivity extends AppCompatActivity {
     TextView tvStartActQuote, tvStartActAuthor;
-    Button btnStartActPass;
+    Button btnStartActShowAllFavQuotes;
     ToggleButton tbStartActPinUnpin;
     SharedPreferences sharedPreferences;
     ImageView ivStartActIsFavorite;
@@ -50,7 +51,7 @@ public class StartActivity extends AppCompatActivity {
 
         tvStartActQuote = findViewById(R.id.tvStartActQuote);
         tvStartActAuthor = findViewById(R.id.tvStartActAuthor);
-        btnStartActPass = findViewById(R.id.btnStartActPass);
+        btnStartActShowAllFavQuotes = findViewById(R.id.btnStartActShowAllFavQuotes);
         tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
         ivStartActIsFavorite = findViewById(R.id.ivStartActIsFavorite);
         tvStartActId = findViewById(R.id.tvStartActId);
@@ -129,7 +130,9 @@ public class StartActivity extends AppCompatActivity {
 
         //endregion
 
-        btnStartActPass.setOnClickListener(v -> {
+        btnStartActShowAllFavQuotes.setOnClickListener(v -> {
+            Intent intent = new Intent(this , AllFavoriteQuotesActivity.class);
+            startActivity(intent);
             finish();
         });
     }
@@ -138,8 +141,8 @@ public class StartActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
 //        String url = "https://dummyjson.com/quotes/random";
 
-        int randomNumber = ThreadLocalRandom.current().nextInt(1, 3 + 1);
-        String url = String.format("https://dummyjson.com/quotes/%d", randomNumber);
+//        int randomNumber = ThreadLocalRandom.current().nextInt(1, 3 + 1);
+        String url = String.format("https://dummyjson.com/quotes/random");
 
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
