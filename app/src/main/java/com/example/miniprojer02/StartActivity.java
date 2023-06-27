@@ -1,48 +1,53 @@
 package com.example.miniprojer02;
 
-import static com.google.android.material.color.utilities.MaterialDynamicColors.error;
-
-import androidx.activity.OnBackPressedDispatcherOwner;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import com.android.volley.Request;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.miniprojer02.Models.Colors;
 import com.example.miniprojer02.Models.Quote;
+import com.example.miniprojer02.databsecolors.colersdb;
 import com.example.miniprojer02.db.FavoriteQuotesDbOpenHelper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class StartActivity extends AppCompatActivity {
+    private final static int INVALIDE_ID = -1;
+
     TextView tvStartActQuote, tvStartActAuthor;
     Button btnStartActPass;
     ToggleButton tbStartActPinUnpin;
     SharedPreferences sharedPreferences;
     ImageView ivStartActIsFavorite;
-    boolean isFavorite = false;
     FavoriteQuotesDbOpenHelper db;
     TextView tvStartActId;
+    colersdb db1;
+    View backgroundc;
+    ArrayList<Colors> colors=new ArrayList<>();
 
+    Spinner Spcolors;
+    @SuppressLint("DefaultLocale")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,20 +59,87 @@ public class StartActivity extends AppCompatActivity {
         tbStartActPinUnpin = findViewById(R.id.tbStartActPinUnpin);
         ivStartActIsFavorite = findViewById(R.id.ivStartActIsFavorite);
         tvStartActId = findViewById(R.id.tvStartActId);
+        Spcolors = findViewById(R.id.Spcolors);
+        backgroundc = findViewById(R.id.backgroundc);
+
+
+
+        db1 =new colersdb(this);
+        db1.AddCOLOR(new Colors("Default       ", "#FF000000"));
+        db1.AddCOLOR(new Colors("LightSalmon   ", "#FFA07A"));
+        db1.AddCOLOR(new Colors("Plum          ", "#DDA0DD"));
+        db1.AddCOLOR(new Colors("PaleGreen     ", "#98FB98"));
+        db1.AddCOLOR(new Colors("CornflowerBlue", "#6495ED"));
+
+        colors = db1.getAll();
+        ArrayAdapter<Colors> adapter=new ArrayAdapter<>(StartActivity.this,
+                androidx.appcompat.R.layout.support_simple_spinner_dropdown_item,colors);
+        Spcolors.setAdapter(adapter);
+
+        Spcolors.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                int Position = 0;
+                switch (position){
+                    case 0:
+                        backgroundc.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                        Position=0;
+                        break;
+                    case 1:
+                        backgroundc.setBackgroundColor(Color.parseColor("#FFA07A"));
+                        Position=1;
+
+                        break;
+                    case 2:
+                        backgroundc.setBackgroundColor(Color.parseColor("#DDA0DD"));
+                        Position = 2;
+
+                        break;
+                    case 3:
+                        backgroundc.setBackgroundColor(Color.parseColor("#98FB98"));
+                        Position = 3;
+
+                        break;
+                    case 4:
+                        backgroundc.setBackgroundColor(Color.parseColor("#6495ED"));
+                        Position = 4;
+
+                        break;
+                }
+                db1.addbgcolor("Bgcolor", String.valueOf(Position));
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+
+
+        //region Persistence Objects
+
+        db = new FavoriteQuotesDbOpenHelper(this);
+        sharedPreferences = getSharedPreferences("pinned-quote", MODE_PRIVATE);
+
+        //endregion
 
         //region Pin | Unpin Quote
 
-        sharedPreferences = getSharedPreferences("pinned-pinnedQuote", MODE_PRIVATE);
+        int pinnedQuoteId = sharedPreferences.getInt("id", INVALIDE_ID);
 
-        String pinnedQuote = sharedPreferences.getString("pinnedQuote", null);
-
-        if (pinnedQuote == null) {
+        if (pinnedQuoteId == INVALIDE_ID) {
             getRandomQuote();
         } else {
+            String quote = sharedPreferences.getString("quote", null);
             String author = sharedPreferences.getString("author", null);
 
-            tvStartActQuote.setText(pinnedQuote);
+            tvStartActId.setText(String.format("#%d", pinnedQuoteId));
+            tvStartActQuote.setText(quote);
             tvStartActAuthor.setText(author);
+
+            ivStartActIsFavorite.setImageResource(db.isFavorite(pinnedQuoteId) ? R.drawable.like : R.drawable.dislike);
 
             tbStartActPinUnpin.setChecked(true);
         }
@@ -76,17 +148,32 @@ public class StartActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
+                int pinnedQuoteId = INVALIDE_ID;
                 String quote = null;
                 String author = null;
 
                 if (isChecked) {
+                    pinnedQuoteId = Integer.parseInt(tvStartActId.getText().toString().substring(1));
                     quote = tvStartActQuote.getText().toString();
                     author = tvStartActAuthor.getText().toString();
+
+                    if (!db.isFavorite(pinnedQuoteId)) {
+                        ivStartActIsFavorite.setImageResource(R.drawable.like);
+
+                        db.add(new Quote(pinnedQuoteId, quote, author));
+
+                        //region ToDo: Delete
+
+                        logFavoriteQuotes();
+
+                        //endregion
+                    }
                 } else {
-                    getRandomQuote();
+//                    getRandomQuote();
                 }
 
-                editor.putString("pinnedQuote", quote);
+                editor.putInt("id", pinnedQuoteId);
+                editor.putString("quote", quote);
                 editor.putString("author", author);
 
                 editor.commit();
@@ -97,12 +184,13 @@ public class StartActivity extends AppCompatActivity {
 
         //region Like | Dislike Quote
 
-        db = new FavoriteQuotesDbOpenHelper(this);
-
         ivStartActIsFavorite.setOnClickListener(v -> {
             int id = Integer.parseInt(tvStartActId.getText().toString().substring(1));
+            boolean isFavorite = db.isFavorite(id);
 
             if (isFavorite) {
+                tbStartActPinUnpin.setChecked(false);
+
                 ivStartActIsFavorite.setImageResource(R.drawable.dislike);
 
                 db.delete(id);
@@ -115,14 +203,9 @@ public class StartActivity extends AppCompatActivity {
                 db.add(new Quote(id, quote, author));
             }
 
-            isFavorite = !isFavorite;
+            //region ToDo: Delete
 
-            //region ToDelete
-
-            ArrayList<Quote> quotes = db.getAll();
-            for (Quote quote : quotes) {
-                Log.e("SQLite", quote.toString());
-            }
+            logFavoriteQuotes();
 
             //endregion
         });
@@ -134,17 +217,32 @@ public class StartActivity extends AppCompatActivity {
         });
     }
 
+    //region ToDo: Delete
+
+    private void logFavoriteQuotes() {
+        ArrayList<Quote> quotes = db.getAll();
+        for (Quote quote : quotes) {
+            Log.e("SQLite", quote.toString());
+        }
+    }
+
+    //endregion
+
     private void getRandomQuote() {
         RequestQueue queue = Volley.newRequestQueue(this);
-//        String url = "https://dummyjson.com/quotes/random";
+        String url = "https://dummyjson.com/quotes/random";
 
-        int randomNumber = ThreadLocalRandom.current().nextInt(1, 3 + 1);
-        String url = String.format("https://dummyjson.com/quotes/%d", randomNumber);
+        //region ToDo: Delete
 
+//        int randomNumber = ThreadLocalRandom.current().nextInt(1, 5 + 1);
+//        String url = String.format("https://dummyjson.com/quotes/%d", randomNumber);
+
+        //endregion
 
         JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 url,
                 new Response.Listener<JSONObject>() {
+                    @SuppressLint("DefaultLocale")
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
@@ -173,13 +271,5 @@ public class StartActivity extends AppCompatActivity {
                 });
 
         queue.add(jsonObjectRequest);
-    }
-
-
-    //endregion
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        finish();
     }
 }
