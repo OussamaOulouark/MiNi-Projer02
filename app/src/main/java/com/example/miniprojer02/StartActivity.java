@@ -82,26 +82,26 @@ public class StartActivity extends AppCompatActivity {
                 int Position = 0;
                 switch (position){
                     case 0:
-                        backgroundc.setBackgroundColor(Color.parseColor("#FFFFFF"));
+                        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#FFFFFF"));
                         Position=0;
                         break;
                     case 1:
-                        backgroundc.setBackgroundColor(Color.parseColor("#FFA07A"));
+                        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#FFA07A"));
                         Position=1;
 
                         break;
                     case 2:
-                        backgroundc.setBackgroundColor(Color.parseColor("#DDA0DD"));
+                        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#DDA0DD"));
                         Position = 2;
 
                         break;
                     case 3:
-                        backgroundc.setBackgroundColor(Color.parseColor("#98FB98"));
+                        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#98FB98"));
                         Position = 3;
 
                         break;
                     case 4:
-                        backgroundc.setBackgroundColor(Color.parseColor("#6495ED"));
+                        getWindow().getDecorView().setBackgroundColor(Color.parseColor("#6495ED"));
                         Position = 4;
 
                         break;
